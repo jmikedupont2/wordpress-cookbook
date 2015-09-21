@@ -19,6 +19,8 @@
 
 include_recipe "wordpress::database"
 
+return unless node['wordpress']['deploy_app']
+
 ::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 node.set_unless['wordpress']['keys']['auth'] = secure_password
 node.set_unless['wordpress']['keys']['secure_auth'] = secure_password

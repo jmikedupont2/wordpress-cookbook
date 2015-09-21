@@ -25,6 +25,9 @@
 # General settings
 default['wordpress']['version'] = 'latest'
 
+# if false, will only setup the environment but not the application
+default['wordpress']['deploy_app'] = true
+
 default['wordpress']['db']['root_password'] = 'my_root_password'
 default['wordpress']['db']['instance_name'] = 'default'
 default['wordpress']['db']['name'] = "wordpressdb"
