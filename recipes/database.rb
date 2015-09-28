@@ -52,11 +52,23 @@ if is_local_host? db['host']
   socket = "/var/run/mysql-#{db['instance_name']}/mysqld.sock"
 
   if node['platform_family'] == 'debian'
+    directory '/var/run/mysqld' do
+      owner 'mysql'
+      group 'mysql'
+      mode '0755'
+      action :create
+    end
     link '/var/run/mysqld/mysqld.sock' do
       to socket
       not_if 'test -f /var/run/mysqld/mysqld.sock'
     end
   elsif node['platform_family'] == 'rhel'
+    directory '/var/run/mysql' do
+      owner 'mysql'
+      group 'mysql'
+      mode '0755'
+      action :create
+    end
     link '/var/lib/mysql/mysql.sock' do
       to socket
       not_if 'test -f /var/lib/mysql/mysql.sock'
