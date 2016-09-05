@@ -1,7 +1,24 @@
+<% if node['apache']['version'] == '2.4' %>
+Listen 0.0.0.0:80
+  <% if @params[:ssl][:enable] %>
+Listen 0.0.0.0:443
+  <% end %>
+<% end %>
+
+
+<% if @params[:ssl][:enable] %>
+<VirtualHost *:80>
+  ServerName <%= @params[:server_name] %>
+  ServerSignature Off
+  Redirect "/" "https://<%= @params[:server_name] %>/"
+</VirtualHost>
+<% end %>
+
 <VirtualHost *:<%= @params[:server_port] %>>
   ServerName <%= @params[:server_name] %>
   ServerAlias <% @params[:server_aliases].each do |a| %><%= a %> <% end %>
   DocumentRoot <%= @params[:docroot] %>
+  ServerSignature Off
 
   <Directory <%= @params[:docroot] %>>
     Options FollowSymLinks
@@ -18,6 +35,25 @@
     Options FollowSymLinks
     AllowOverride None
   </Directory>
+
+<% if @params[:ssl][:enable] %>
+  SSLEngine               on
+  SSLCertificateFile      <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_file]}" %>
+  SSLCertificateKeyFile   <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_key_file]}" %>
+  <% if @params[:ssl][:certificates][:certificate_chain_file] %>
+  SSLCertificateChainFile <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_chain_file]}" %>
+  <% end %>
+
+  # SSL security
+  # Includes prevention to POODLE and BEAST
+  # See:
+  # * https://sslcheck.globalsign.com/en_US/help/acbb2dc6
+  # * https://www.linode.com/docs/security/security-patches/disabling-sslv3-for-poodle
+  SSLProtocol ALL -SSLv2 -SSLv3
+  SSLCipherSuite HIGH:!aNULL:!MD5
+  SSLHonorCipherOrder On
+  SSLInsecureRenegotiation off
+<% end %>
 
   LogLevel info
   ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
