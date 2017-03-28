@@ -55,6 +55,8 @@ Listen 0.0.0.0:443
   SSLInsecureRenegotiation off
 <% end %>
 
+  <%= render node['apache']['extension'] unless node['apache']['extension'].nil? %>
+
   LogLevel info
   ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
   CustomLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-access.log combined
