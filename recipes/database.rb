@@ -101,6 +101,7 @@ if is_local_host? db['host']
   mysql_database_user db['user'] do
     connection    mysql_connection_info
     database_name db['name']
+    password      dbsecure['pass']    
     privileges    [:all]
     action        :grant
   end
