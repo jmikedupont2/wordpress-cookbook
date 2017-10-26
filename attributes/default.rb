@@ -51,9 +51,9 @@ when 'centos', 'redhat', 'amazon', 'scientific'
   default['wordpress']['db']['mysql_version'] = if node['platform_version'].to_i < 6
                                                   '5.0'
                                                 elsif node['platform_version'].to_i < 7
-                                                  '5.1'
+                                                  '5.6'
                                                 else
-                                                  '5.5'
+                                                  '5.7'
                                                 end
 else
   default['wordpress']['db']['mysql_version'] = '5.7'
