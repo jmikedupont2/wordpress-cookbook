@@ -20,6 +20,8 @@
 # limitations under the License.
 #
 
+include_recipe 'yum-mysql-community::mysql' + node['wordpress']['db']['mysql_version'].gsub('.','')
+
 mysql_client 'default' do
   action :create
   not_if { node['platform_family'] == 'windows' }
@@ -42,9 +44,8 @@ else
     admins node['wordpress']['vault']['admins']
     clients "name:#{node['fqdn']}"
     search "name:#{node['fqdn']}"
-    raw_data({
-      'root_password' => db['root_password'].nil? ? random_password : db['root_password'], 
-      'pass' => db['pass'].nil? ? random_password : db['pass'] })
+    raw_data('root_password' => db['root_password'].nil? ? random_password : db['root_password'],
+             'pass' => db['pass'].nil? ? random_password : db['pass'])
     action :nothing
   end.run_action(:create_if_missing)
 
@@ -78,10 +79,10 @@ if is_local_host? db['host']
   end
 
   mysql_connection_info = {
-    :host     => 'localhost',
-    :username => 'root',
-    :socket   => socket,
-    :password => dbsecure['root_password']
+    host: 'localhost',
+    username: 'root',
+    socket: socket,
+    password: dbsecure['root_password'],
   }
 
   mysql_database db['name'] do

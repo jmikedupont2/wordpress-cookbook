@@ -18,4 +18,4 @@
 #
 
 include_recipe 'chef-vault'
-include_recipe "wordpress::apache"
+include_recipe 'wordpress::apache'

@@ -27,12 +27,12 @@ default['wordpress']['version'] = 'latest'
 
 default['wordpress']['db']['root_password'] = nil
 default['wordpress']['db']['instance_name'] = 'default'
-default['wordpress']['db']['name'] = "wordpressdb"
-default['wordpress']['db']['user'] = "wordpressuser"
+default['wordpress']['db']['name'] = 'wordpressdb'
+default['wordpress']['db']['user'] = 'wordpressuser'
 default['wordpress']['db']['pass'] = nil
 default['wordpress']['db']['prefix'] = 'wp_'
 default['wordpress']['db']['host'] = 'localhost'
-default['wordpress']['db']['port'] = '3306'  # Must be a string
+default['wordpress']['db']['port'] = '3306' # Must be a string
 default['wordpress']['db']['charset'] = 'utf8'
 default['wordpress']['db']['collate'] = ''
 
@@ -41,22 +41,22 @@ default['wordpress']['vault']['data_bag'] = 'mysql'
 default['wordpress']['vault']['item_name'] = node['fqdn']
 case node['platform']
 when 'ubuntu'
-  case node['platform_version']
-  when '10.04'
-    default['wordpress']['db']['mysql_version'] = '5.1'
-  else
-    default['wordpress']['db']['mysql_version'] = '5.5'
-  end
+  default['wordpress']['db']['mysql_version'] = case node['platform_version']
+                                                when '10.04'
+                                                  '5.1'
+                                                else
+                                                  '5.5'
+                                                end
 when 'centos', 'redhat', 'amazon', 'scientific'
-  if node['platform_version'].to_i < 6
-    default['wordpress']['db']['mysql_version'] = '5.0'
-  elsif node['platform_version'].to_i < 7
-    default['wordpress']['db']['mysql_version'] = '5.1'
-  else
-    default['wordpress']['db']['mysql_version'] = '5.5'
-  end
+  default['wordpress']['db']['mysql_version'] = if node['platform_version'].to_i < 6
+                                                  '5.0'
+                                                elsif node['platform_version'].to_i < 7
+                                                  '5.1'
+                                                else
+                                                  '5.5'
+                                                end
 else
-  default['wordpress']['db']['mysql_version'] = '5.5'
+  default['wordpress']['db']['mysql_version'] = '5.7'
 end
 
 default['wordpress']['allow_multisite'] = false
@@ -75,18 +75,18 @@ default['wordpress']['install']['group'] = node['apache']['group']
 default['wordpress']['languages']['lang'] = ''
 default['wordpress']['languages']['version'] = ''
 default['wordpress']['languages']['repourl'] = 'http://translate.wordpress.org/projects/wp'
-default['wordpress']['languages']['projects'] = ['main', 'admin', 'admin_network', 'continents_cities']
+default['wordpress']['languages']['projects'] = %w(main admin admin_network continents_cities)
 default['wordpress']['languages']['themes'] = []
 default['wordpress']['languages']['project_pathes'] = {
   'main'              => '/',
   'admin'             => '/admin/',
   'admin_network'     => '/admin/network/',
-  'continents_cities' => '/cc/'
+  'continents_cities' => '/cc/',
 }
-%w{ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty}.each do |year|
+%w(ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty).each do |year|
   default['wordpress']['languages']['project_pathes']["twenty#{year}"] = "/twenty#{year}/"
 end
-node['wordpress']['languages']['project_pathes'].each do |project,project_path|
+node['wordpress']['languages']['project_pathes'].each do |project, project_path|
   # http://translate.wordpress.org/projects/wp/3.5.x/admin/network/ja/default/export-translations?format=mo
   default['wordpress']['languages']['urls'][project] =
     node['wordpress']['languages']['repourl'] + '/' +
