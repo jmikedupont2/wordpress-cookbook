@@ -4,7 +4,7 @@ maintainer_email "cookbooks@opscode.com"
 license          "Apache 2.0"
 description      "Installs/Configures WordPress"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "3.1.5"
+version          "3.2.0"
 
 recipe "WordPress", "Installs and configures WordPress LAMP stack on a single system"
 recipe "WordPress::languages", "Install WordPress translation files"
@@ -14,16 +14,16 @@ recipe "WordPress::languages", "Install WordPress translation files"
 end
 
 depends "apache2", ">= 2.0.0"
-depends "chef-vault", "= 1.3.0"
+depends "chef-vault", "~> 3.0"
 depends "database", ">= 1.6.0"
-depends "mysql", "~> 6.0"
-depends "mysql2_chef_gem", "~> 1.0.1"
+depends "mysql", "~> 8.5"
+depends "mysql2_chef_gem", "~> 2.1"
 depends "build-essential"
 depends "iis", ">= 1.6.2"
 depends "tar", ">= 0.3.1"
-depends "nginx", "~> 2.7.4"
-depends "php-fpm", "~> 0.6.10"
-depends 'selinux', '~> 0.7'
+depends "nginx", "~> 7.0"
+depends "php-fpm", "~> 0.8.0"
+depends 'selinux', '>= 2.0'
 
 %w{ debian ubuntu windows centos redhat scientific oracle }.each do |os|
   supports os
