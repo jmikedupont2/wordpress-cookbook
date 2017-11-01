@@ -105,4 +105,10 @@ else
   default['wordpress']['url'] = "https://wordpress.org/wordpress-#{node['wordpress']['version']}.tar.gz"
 end
 
+# For NGINX
 default['wordpress']['php_options'] = { 'php_admin_value[upload_max_filesize]' => '50M', 'php_admin_value[post_max_size]' => '55M' }
+
+# For Apache
+default['php']['directives'] = { 'upload_max_filesize' => '50M',
+                                 'post_max_size' => '55M',
+                                }
