@@ -21,6 +21,7 @@ Listen 0.0.0.0:443
   ServerSignature Off
 
   <Directory <%= @params[:docroot] %>>
+    DirectoryIndex index.html index.php
     Options FollowSymLinks
     AllowOverride FileInfo Options
     <% if node['apache']['version'] == '2.4' %>
@@ -66,4 +67,9 @@ Listen 0.0.0.0:443
   RewriteLog <%= node['apache']['log_dir'] %>/<%= @application_name %>-rewrite.log
   RewriteLogLevel 0
 <% end %>
+
+  # if there are index.html files inside a public folder, redirect to
+  # the folder with a trailing slash, otherwise it gives a 404
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.*)$ $2/ [L]
 </VirtualHost>
