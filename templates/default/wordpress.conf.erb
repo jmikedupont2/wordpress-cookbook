@@ -20,6 +20,10 @@ Listen 0.0.0.0:443
   DocumentRoot <%= @params[:docroot] %>
   ServerSignature Off
 
+  <% node['wordpress']['redirects'].each do |redir| %>
+  RedirectMatch <%= redir['from'] %> <%= redir['to'] %>
+  <% end %>
+
   <Directory <%= @params[:docroot] %>>
     DirectoryIndex index.html index.php
     Options FollowSymLinks
@@ -35,6 +39,7 @@ Listen 0.0.0.0:443
   <Directory />
     Options FollowSymLinks
     AllowOverride None
+    Require all granted
   </Directory>
 
 <% if @params[:ssl][:enable] %>
