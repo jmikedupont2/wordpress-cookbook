@@ -25,11 +25,6 @@ unless platform? 'windows'
   include_recipe 'apache2'
   include_recipe 'apache2::mod_php'
   include_recipe 'apache2::mod_ssl'
-
-  # MONKEYPATCH: https://github.com/sous-chefs/apache2/pull/505
-  ourtemplate = resources("template[#{node['apache']['dir']}/mods-available/php.conf]")
-  ourtemplate.path "#{node['apache']['dir']}/mods-available/php5.conf"
-
 end
 
 include_recipe 'wordpress::app'
