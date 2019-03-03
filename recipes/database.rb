@@ -20,6 +20,8 @@
 # limitations under the License.
 #
 
+include_recipe 'yum-mysql-community::mysql' + node['wordpress']['db']['mysql_version'].delete('.')
+
 mysql_client 'default' do
   action :create
   not_if { node['platform_family'] == 'windows' }
@@ -29,13 +31,26 @@ mysql2_chef_gem 'default' do
   action :install
 end
 
-::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
+::Chef::Resource.send(:include, OpenSSLCookbook::RandomPassword)
 ::Chef::Recipe.send(:include, Wordpress::Helpers)
 
-node.set_unless['wordpress']['db']['pass'] = secure_password
-node.save unless Chef::Config[:solo]
-
 db = node['wordpress']['db']
+
+if Chef::Config[:solo]
+  dbsecure = node['wordpress']['db']
+else
+  chef_vault_secret node['wordpress']['vault']['item_name'] do
+    data_bag node['wordpress']['vault']['data_bag']
+    admins node['wordpress']['vault']['admins']
+    clients "name:#{node['fqdn']}"
+    search "name:#{node['fqdn']}"
+    raw_data('root_password' => db['root_password'].nil? ? random_password : db['root_password'],
+             'pass' => db['pass'].nil? ? random_password : db['pass'])
+    action :nothing
+  end.run_action(:create_if_missing)
+
+  dbsecure = chef_vault_item(node['wordpress']['vault']['data_bag'], node['wordpress']['vault']['item_name'])
+end
 
 if is_local_host? db['host']
 
@@ -45,7 +60,7 @@ if is_local_host? db['host']
   mysql_service db['instance_name'] do
     port db['port']
     version db['mysql_version']
-    initial_root_password db['root_password']
+    initial_root_password dbsecure['root_password']
     action [:create, :start]
   end
 
@@ -64,10 +79,10 @@ if is_local_host? db['host']
   end
 
   mysql_connection_info = {
-    :host     => 'localhost',
-    :username => 'root',
-    :socket   => socket,
-    :password => db['root_password']
+    host: 'localhost',
+    username: 'root',
+    socket: socket,
+    password: dbsecure['root_password'],
   }
 
   mysql_database db['name'] do
@@ -77,7 +92,7 @@ if is_local_host? db['host']
 
   mysql_database_user db['user'] do
     connection    mysql_connection_info
-    password      db['pass']
+    password      dbsecure['pass']
     host          db['host']
     database_name db['name']
     action        :create
@@ -86,6 +101,7 @@ if is_local_host? db['host']
   mysql_database_user db['user'] do
     connection    mysql_connection_info
     database_name db['name']
+    password      dbsecure['pass']
     privileges    [:all]
     action        :grant
   end

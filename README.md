@@ -54,6 +54,7 @@ Attributes
 * `node['wordpress']['db']['mysql_version']` - Version of MySQL to install (for supporting community cookbook version 6+)
 
 * `node['wordpress']['allow_multisite']` - Enable [multisite](http://codex.wordpress.org/Create_A_Network) features (default: false).
+* `node['wordpress']['behind_ssl_termination']` - For many LBs including NBs, when they forward traffic they will add some  X-FORWARDED-* headers. We just need to tell WordPress that when the “HTTP_X_FORWARDED_PROTO” is set to “https”, [use SSL](https://feliciano.tech/blog/running-wordpress-behind-an-sslhttps-terminating-proxy/). 
 * `node['wordpress']['wp_config_options']` - A hash of options to define in wp_config.php, output as key value pairs into a PHP constant e.g. `define( '<%= @key %>', <%= @value %> );`. Note: for values you will need to add single quotes around text but omit them for booleans and numbers. (default: {}).
 * `node['wordpress']['config_perms']` - Permissions to set for a site's wp-config.php.
 * `node['wordpress']['server_aliases']` - Aliases to use when setting up Virtual Host with Nginx or Apache

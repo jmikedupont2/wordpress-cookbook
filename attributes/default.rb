@@ -25,16 +25,20 @@
 # General settings
 default['wordpress']['version'] = 'latest'
 
-default['wordpress']['db']['root_password'] = 'my_root_password'
+default['wordpress']['db']['root_password'] = nil
 default['wordpress']['db']['instance_name'] = 'default'
-default['wordpress']['db']['name'] = "wordpressdb"
-default['wordpress']['db']['user'] = "wordpressuser"
+default['wordpress']['db']['name'] = 'wordpressdb'
+default['wordpress']['db']['user'] = 'wordpressuser'
 default['wordpress']['db']['pass'] = nil
 default['wordpress']['db']['prefix'] = 'wp_'
 default['wordpress']['db']['host'] = 'localhost'
-default['wordpress']['db']['port'] = '3306'  # Must be a string
+default['wordpress']['db']['port'] = '3306' # Must be a string
 default['wordpress']['db']['charset'] = 'utf8'
 default['wordpress']['db']['collate'] = ''
+
+default['wordpress']['vault']['admins'] = 'myadmins'
+default['wordpress']['vault']['data_bag'] = 'mysql'
+default['wordpress']['vault']['item_name'] = node['fqdn']
 case node['platform']
 when 'ubuntu'
   case node['platform_version']
@@ -56,6 +60,7 @@ else
 end
 
 default['wordpress']['allow_multisite'] = false
+default['wordpress']['behind_ssl_termination'] = false
 
 default['wordpress']['wp_config_options'] = {}
 
@@ -72,18 +77,18 @@ default['wordpress']['install']['group'] = node['apache']['group']
 default['wordpress']['languages']['lang'] = ''
 default['wordpress']['languages']['version'] = ''
 default['wordpress']['languages']['repourl'] = 'http://translate.wordpress.org/projects/wp'
-default['wordpress']['languages']['projects'] = ['main', 'admin', 'admin_network', 'continents_cities']
+default['wordpress']['languages']['projects'] = %w(main admin admin_network continents_cities)
 default['wordpress']['languages']['themes'] = []
 default['wordpress']['languages']['project_pathes'] = {
   'main'              => '/',
   'admin'             => '/admin/',
   'admin_network'     => '/admin/network/',
-  'continents_cities' => '/cc/'
+  'continents_cities' => '/cc/',
 }
-%w{ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty}.each do |year|
+%w(ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty).each do |year|
   default['wordpress']['languages']['project_pathes']["twenty#{year}"] = "/twenty#{year}/"
 end
-node['wordpress']['languages']['project_pathes'].each do |project,project_path|
+node['wordpress']['languages']['project_pathes'].each do |project, project_path|
   # http://translate.wordpress.org/projects/wp/3.5.x/admin/network/ja/default/export-translations?format=mo
   default['wordpress']['languages']['urls'][project] =
     node['wordpress']['languages']['repourl'] + '/' +
@@ -104,8 +109,16 @@ else
   default['wordpress']['url'] = "https://wordpress.org/wordpress-#{node['wordpress']['version']}.tar.gz"
 end
 
+# For NGINX
 default['wordpress']['php_options'] = { 'php_admin_value[upload_max_filesize]' => '50M', 'php_admin_value[post_max_size]' => '55M' }
 
+
 default['wordpress']['admin'] = {
-    htpasswd: "/var/www/admin/.htpasswd"
+  htpasswd: "/var/www/admin/.htpasswd"
 }
+# For Apache
+default['php']['directives'] = {
+  'upload_max_filesize' => '50M',
+  'post_max_size' => '55M',
+}
+

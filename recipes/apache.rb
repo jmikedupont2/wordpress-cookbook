@@ -17,17 +17,19 @@
 # limitations under the License.
 #
 
-include_recipe "php"
+include_recipe 'php'
 
 # On Windows PHP comes with the MySQL Module and we use IIS on Windows
 unless platform? "windows"
   include_recipe "apache2"
-  include_recipe "apache2::mod_php"
-
   package 'php7.0-mysql'
+  include_recipe 'php::module_mysql'
+  include_recipe 'apache2'
+  include_recipe 'apache2::mod_php'
+  include_recipe 'apache2::mod_ssl'
 end
 
-include_recipe "wordpress::app"
+include_recipe 'wordpress::app'
 
 if platform?('windows')
 
@@ -43,9 +45,10 @@ if platform?('windows')
     port 80
     path node['wordpress']['dir']
     application_pool 'WordpressPool'
-    action [:add,:start]
+    action [:add, :start]
   end
 else
+
   web_app "wordpress" do
     template "wordpress.conf.erb"
     docroot node['wordpress']['docroot']

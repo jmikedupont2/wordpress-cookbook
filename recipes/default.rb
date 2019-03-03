@@ -36,3 +36,4 @@ if users.any?
 end
 
 include_recipe "wordpress::apache"
+include_recipe 'chef-vault'

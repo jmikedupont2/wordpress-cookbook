@@ -27,12 +27,12 @@ module Wordpress
       else
         require 'socket'
         require 'resolv'
-        Socket.ip_address_list.map { |a| a.ip_address }.include? Resolv.getaddress host
+        Socket.ip_address_list.map(&:ip_address).include? Resolv.getaddress host
       end
     end
 
     def self.make_db_query(user, pass, query)
-      %< --user=#{user} --password="#{pass}" --execute="#{query}">
+      %( --user=#{user} --password="#{pass}" --execute="#{query}")
     end
   end
 end
