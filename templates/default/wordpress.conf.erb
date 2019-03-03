@@ -1,16 +1,29 @@
+
 <% target_host = (node['wordpress']['ssl_enabled'] and node['ipaddress']) ? node['ipaddress'] : '*' %>
+<% if node['apache']['version'] == '2.4' %>
+Listen 0.0.0.0:80
+  <% if @params[:ssl][:enable] %>
+Listen 0.0.0.0:443
+  <% end %>
+<% end %>
+
 <% if node['wordpress']['ssl_enabled'] %>
-<VirtualHost <%= target_host %>:80>
+<VirtualHost <%= target_host %>:<%= @params[:server_port] %>>
   ServerName <%= @params[:server_name] %>
+  ServerSignature Off
   Redirect permanent / https://<%= @params[:server_name] %><%= @params[:server_path] %>
 </VirtualHost>
-
 <% else %>
 <% end %>
 <VirtualHost <%= target_host %>:<%= @params[:server_port] %>>
   ServerName <%= @params[:server_name] %>
   ServerAlias <% @params[:server_aliases].each do |a| %><%= a %> <% end %>
   DocumentRoot <%= @params[:docroot] %>
+  ServerSignature Off
+
+  <% node['wordpress']['redirects'].each do |redir| %>
+  RedirectMatch <%= redir['from'] %> <%= redir['to'] %>
+  <% end %>
 
   SecRequestBodyLimit 67108864
 
@@ -41,6 +54,7 @@
 
   <% end %>
   <Directory <%= @params[:docroot] %>>
+    DirectoryIndex index.html index.php
     Options FollowSymLinks
     AllowOverride FileInfo Options
     Require all granted
@@ -49,7 +63,29 @@
   <Directory />
     Options FollowSymLinks
     AllowOverride None
+    Require all granted
   </Directory>
+
+<% if @params[:ssl][:enable] %>
+  SSLEngine               on
+  SSLCertificateFile      <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_file]}" %>
+  SSLCertificateKeyFile   <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_key_file]}" %>
+  <% if @params[:ssl][:certificates][:certificate_chain_file] %>
+  SSLCertificateChainFile <%= "#{@params[:ssl][:certificates][:path]}/#{@params[:ssl][:certificates][:certificate_chain_file]}" %>
+  <% end %>
+
+  # SSL security
+  # Includes prevention to POODLE and BEAST
+  # See:
+  # * https://sslcheck.globalsign.com/en_US/help/acbb2dc6
+  # * https://www.linode.com/docs/security/security-patches/disabling-sslv3-for-poodle
+  SSLProtocol ALL -SSLv2 -SSLv3
+  SSLCipherSuite HIGH:!aNULL:!MD5
+  SSLHonorCipherOrder On
+  SSLInsecureRenegotiation off
+<% end %>
+
+  <%= render node['apache']['extension'] unless node['apache']['extension'].nil? %>
 
   LogLevel info
   ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
@@ -60,4 +96,9 @@
 <% if node['wordpress']['ssl_enabled'] %>
   SetEnv nokeepalive ssl-unclean-shutdown
 <% end %>
+
+  # if there are index.html files inside a public folder, redirect to
+  # the folder with a trailing slash, otherwise it gives a 404
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.*)$ $2/ [L]
 </VirtualHost>

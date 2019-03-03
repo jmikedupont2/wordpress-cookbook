@@ -21,15 +21,16 @@ include_recipe 'wordpress::database'
 
 dbsecure = chef_vault_item(node['wordpress']['vault']['data_bag'], node['wordpress']['vault']['item_name'])
 
-::Chef::Recipe.send(:include, OpenSSLCookbook::RandomPassword)
-node.set_unless['wordpress']['keys']['auth'] = random_password
-node.set_unless['wordpress']['keys']['secure_auth'] = random_password
-node.set_unless['wordpress']['keys']['logged_in'] = random_password
-node.set_unless['wordpress']['keys']['nonce'] = random_password
-node.set_unless['wordpress']['salt']['auth'] = random_password
-node.set_unless['wordpress']['salt']['secure_auth'] = random_password
-node.set_unless['wordpress']['salt']['logged_in'] = random_password
-node.set_unless['wordpress']['salt']['nonce'] = random_password
+::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
+node.set_unless['wordpress']['keys']['auth'] = secure_password
+node.set_unless['wordpress']['keys']['secure_auth'] = secure_password
+node.set_unless['wordpress']['keys']['logged_in'] = secure_password
+node.set_unless['wordpress']['keys']['nonce'] = secure_password
+node.set_unless['wordpress']['salt']['auth'] = secure_password
+node.set_unless['wordpress']['salt']['secure_auth'] = secure_password
+node.set_unless['wordpress']['salt']['logged_in'] = secure_password
+node.set_unless['wordpress']['salt']['nonce'] = secure_password
+return unless node['wordpress']['deploy_app']
 node.save unless Chef::Config[:solo]
 
 directory node['wordpress']['dir'] do

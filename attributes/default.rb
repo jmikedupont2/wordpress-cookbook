@@ -26,6 +26,10 @@
 default['wordpress']['version'] = 'latest'
 
 default['wordpress']['db']['root_password'] = nil
+
+# if false, will only setup the environment but not the application
+default['wordpress']['deploy_app'] = true
+
 default['wordpress']['db']['instance_name'] = 'default'
 default['wordpress']['db']['name'] = 'wordpressdb'
 default['wordpress']['db']['user'] = 'wordpressuser'
@@ -122,3 +126,10 @@ default['php']['directives'] = {
   'post_max_size' => '55M',
 }
 
+# Custom internal redirects. Example:
+#   default['wordpress']['redirects'] = [
+#     { 'from': '^/$', 'to': '/pt' }
+#   ]
+default['wordpress']['redirects'] = []
+
+default['apache']['extension'] = nil

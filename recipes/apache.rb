@@ -31,6 +31,45 @@ end
 
 include_recipe 'wordpress::app'
 
+
+certs = {
+  certificate_file: nil,
+  certificate_key_file: nil,
+  ca_certificate_file: nil,
+  certificate_chain_file: nil
+}
+
+if node['wordpress']['ssl']['enable']
+  apache_module 'socache_shmcb'
+  apache_module 'ssl'
+
+  certs.each do |cert_name, value|
+    file = node['wordpress']['ssl']['certificates'][cert_name]
+    if file && file.strip != ''
+      path = "#{node['wordpress']['ssl']['certificates']['path']}/#{file}"
+
+      cookbook_file path do
+        source file
+        owner 'root'
+        group node['apache']['group']
+        mode 00640
+        action :create
+        only_if { node['wordpress']['ssl']['copy_certificates'] }
+      end
+    end
+  end
+end
+
+path = node['wordpress']['ssl']['certificates']['path']
+directory path do
+  owner 'root'
+  group node['apache']['group']
+  mode 00640
+  recursive true
+  action :create
+  only_if { path && path.strip != '' }
+end
+
 if platform?('windows')
 
   include_recipe 'iis::remove_default_site'
@@ -56,6 +95,8 @@ else
     server_name node['wordpress']['server_name']
     server_aliases node['wordpress']['server_aliases']
     server_port node['wordpress']['server_port']
+    ssl node['wordpress']['ssl']
+    certs certs
     enable true
   end
 end
